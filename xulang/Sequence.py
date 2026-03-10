@@ -1,3 +1,5 @@
+from typing import Optional
+
 try:
     from .SimpleTerm import SimpleTerm
 except:
@@ -112,6 +114,11 @@ class Sequence:
                 )
         return Sequence.init(object_list)
     
+    # 检查当前序列是否有一个成员是 BraceSequence
+    # 没有 BraceSequence 成员的 Sequence 是 “简单的”
+    # 否则它就是 “复杂的”
+    # 简单规则总是优先从顶层开始匹配，先匹配（用于保证短路性）
+    # 复杂规则总是从底层开始匹配
     def has_sub_brace(self) -> bool:
         if BRACE_SEQUENCE_CLASS_META_OBJECT[0] is None:
             raise AssertionError()
@@ -120,9 +127,11 @@ class Sequence:
                 return True
         return False
 
-    # 检查一个序列是不是完全由常量构成
-    def all_const(self) -> bool:
-        ans = True
+    # 获取一个当前序列中的任意变量名
+    # 找不到则返回 None
+    def get_one_var(self) -> Optional[str]:
         for term in self.objects:
-            ans = ans and term.all_const()
-        return ans
+            one_var = term.get_one_var()
+            if one_var is not None:
+                return one_var
+        return None

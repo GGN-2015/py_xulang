@@ -1,4 +1,5 @@
 import string
+from typing import Optional
 
 class SimpleTerm:
     def __init__(self) -> None:
@@ -72,8 +73,13 @@ class SimpleTerm:
             raise AssertionError()
         return s[0] in string.ascii_uppercase or s[0] in string.digits
     
-    def all_const(self) -> bool:
-        return SimpleTerm.is_const_val(self.serialize())
+    # 如果当前变量不是常量，则返回自己的序列化名
+    # 如果当前变量是常量，则返回 None
+    def get_one_var(self) -> Optional[str]:
+        if SimpleTerm.is_const_val(self.serialize()):
+            return None
+        else:
+            return self.serialize()
 
 if __name__ == "__main__":
     term = SimpleTerm.init("hello", False)

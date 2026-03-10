@@ -1,5 +1,6 @@
 import os
 import traceback
+from typing import Optional
 
 try:
     from .RuleSet import RuleSet
@@ -17,9 +18,17 @@ class CommandWrap:
         self.command = command
 
 class FileRunner:
-    def __init__(self) -> None:
+    def __init__(self, include_path_list:list[str]) -> None:
+        if not isinstance(include_path_list, list): # 必须是 list
+            raise TypeError()
+        for include_path in include_path_list:
+            if not isinstance(include_path, str): # 必须是字符串
+                raise TypeError()
+            if not os.path.isdir(include_path):
+                raise FileNotFoundError(f"Include path \"{include_path}\" not found.")
 
         # 记录已经被引入的所有路径
+        # 保证同一个文件第二次 include 时不再执行
         self.exists_path:set[str] = set()
 
         # 记录所有还没有执行的指令
@@ -34,10 +43,19 @@ class FileRunner:
         # 报错是否需要打开源代码位置信息
         self.extra_error_info = False
 
+        # 记录所有可以 include 的路径
+        #   这里的 "." 是一个特殊路径，表示被运行的脚本所在的目录
+        #   而不是当前工作路径
+        # self.include_path 中除了 "." 之外都是绝对路径
+        self.include_path = ["."] + [
+            os.path.abspath(path) for path in include_path_list]
+
     # 返回值表示是否是第一次加载
     # 不是第一次加载时候跳过
+    # 这里的 filepath 必须使用绝对路径
     def include_file(self, filepath:str) -> bool:
-        filepath = os.path.abspath(filepath)
+        if not os.path.isabs(filepath): # 应当使用绝对路径
+            raise ValueError()
         if not os.path.isfile(filepath): # 文件不存在，抛出异常
             raise FileNotFoundError()
         if filepath in self.exists_path: # 不是第一次加载
@@ -54,28 +72,43 @@ class FileRunner:
     
     # 当前命令有可能来自命令行输入而不是文件
     def get_dirnow(self, filepath_str:str) -> str:
-        if filepath_str == "<STDIN>":
-            return os.getcwd() # 获取当前工作目录作为 DIRNOW
+        if filepath_str == "<STDIN>": # 获取当前工作目录作为 DIRNOW
+            return os.path.abspath(os.getcwd())
         else:
             return os.path.dirname(os.path.abspath(filepath_str))
 
+    # 在所有可以使用的 include_path 中找到第一个匹配项目
+    # cmd_file_now 是当前正在执行的命令所在的文件
+    def get_first_match_dir(self, filename:str, cmd_file_now:str) -> Optional[str]:
+        for path_now in self.include_path:
+            # 这里的 "." 是一个特殊目录，表示当前脚本所在目录
+            # 如果当前脚本是交互式输入的，则该目录是工作目录
+            if path_now == ".":
+                path_now = self.get_dirnow(cmd_file_now)
+            hypo_filepath = os.path.abspath(os.path.join(path_now, filename))
+            if os.path.isfile(hypo_filepath):
+                return path_now
+        return None
+
     # 执行特殊命令（井号开头的命令）
-    def execute_special_cmd(self, first_cmd:CommandWrap):
+    def execute_special_cmd(self, cmd_now:CommandWrap):
         if self.verbose:
-            print("FROM:", first_cmd.command.strip()) # 特殊命令就输出一个原始命令就行
+            print("FROM:", cmd_now.command.strip()) # 特殊命令就输出一个原始命令就行
         
         # 分离命令头部和命令内容
-        first_part, other_part = first_cmd.command.split(maxsplit=1)
+        first_part, other_part = cmd_now.command.split(maxsplit=1)
         assert first_part.startswith("#")
         first_part = first_part[1:]
 
         # 在这里给出所有特殊命令对应的列表
         if first_part == "include":         # 引入新文件命令
-            other_part = other_part.strip() # 获取文件相对路径
-            if other_part == "":            # 没有指定文件名
+            rel_filepath = other_part.strip() # 获取文件相对路径
+            if rel_filepath == "":            # 没有指定文件名
                 raise ValueError()
-            dirnow = self.get_dirnow(first_cmd.filepath)
-            new_filepath = os.path.abspath(os.path.join(dirnow, other_part))
+            dirnow = self.get_first_match_dir(rel_filepath, cmd_now.filepath)
+            if dirnow is None:
+                raise FileNotFoundError(f"Can not include file \"{rel_filepath}\".")
+            new_filepath = os.path.abspath(os.path.join(dirnow, rel_filepath))
             self.include_file(new_filepath.strip())
 
         else:
@@ -101,8 +134,8 @@ class FileRunner:
         
             else: # 执行命令并输出计算结果
                 value_term = ValueTerm.deserialize(f"[{first_cmd.command.strip()}]")
-                if not value_term.all_const():
-                    raise ValueError("No variables allowed in the current expression.")
+                if value_term.get_one_var() is not None:
+                    raise ValueError(f"No variables (like \"{value_term.get_one_var()}\") allowed in the current expression.")
                 new_value_term = self.rule_set.calc(value_term, self.verbose)
                 print(new_value_term.serialize().strip()[1:-1]) # 输出前去掉中括号
 
@@ -163,5 +196,5 @@ class FileRunner:
         self.execute_all() # 执行到无法执行为止
 
 if __name__ == "__main__":
-    file_runner = FileRunner()
+    file_runner = FileRunner([])
     file_runner.interactive_ui()

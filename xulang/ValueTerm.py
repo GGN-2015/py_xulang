@@ -1,3 +1,5 @@
+from typing import Optional
+
 try:
     from .SimpleTerm import SimpleTerm
     from .BraceSequence import BraceSequence
@@ -58,9 +60,10 @@ class ValueTerm:
             new_item.value = BraceSequence.from_json_obj(value_json_obj)
         return new_item
     
-    # 检查一个序列是不是完全由常量构成
-    def all_const(self) -> bool:
-        return self.value.all_const()
+    # 获取一个当前序列中的任意变量名
+    # 找不到则返回 None
+    def get_one_var(self) -> Optional[str]:
+        return self.value.get_one_var()
     
 if __name__ == "__main__":
     test_list = [

@@ -1,6 +1,6 @@
 [project]
 name = "xulang"
-version = "0.1.0"
+version = "0.2.0"
 description = "Xulang: a minimalist programming language with no rules to memorize. Dedicated to my dear little mouse."
 authors = [
     {name = "GGN_2015",email = "neko@jlulug.org"}

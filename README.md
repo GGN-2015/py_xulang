@@ -13,6 +13,9 @@ python3 -m xulang
 
 # run file
 python3 -m xulang <filepath.xu>
+
+# run file with include_path
+python3 -m xulang -I <include_path> <filepath.xu>
 ```
 
 ## Lexical Units

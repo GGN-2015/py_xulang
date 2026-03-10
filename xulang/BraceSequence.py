@@ -1,3 +1,5 @@
+from typing import Optional
+
 try:
     from .Sequence import Sequence, BRACE_SEQUENCE_CLASS_META_OBJECT
 except:
@@ -51,9 +53,10 @@ class BraceSequence:
     def has_sub_brace(self) -> bool:
         return self.inner_sequence.has_sub_brace()
     
-    # 检查一个序列是不是完全由常量构成
-    def all_const(self) -> bool:
-        return self.inner_sequence.all_const()
+    # 获取一个当前序列中的任意变量名
+    # 找不到则返回 None
+    def get_one_var(self) -> Optional[str]:
+        return self.inner_sequence.get_one_var()
 
 # 传参方式传递类型对象
 BRACE_SEQUENCE_CLASS_META_OBJECT[0] = BraceSequence # type: ignore
