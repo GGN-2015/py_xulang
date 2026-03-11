@@ -1,5 +1,8 @@
 # xulang
-xulang: an ultra-minimalist programming language with zero memorization of rules required.
+xulang: an ultra-minimalist programming language with zero memorization of grammar required.
+
+## Introduction
+Zhizhi is a lovely mouse-musume. Since she dislikes memorizing grammar rules, Miaomiao designed a programming language for her that requires almost no grammar memorization.
 
 ## Install
 ```bash
@@ -31,5 +34,5 @@ List Matching: A string starting with an asterisk immediately followed by a vari
 ## Program Examples
 See `./sample_code/*.xu` on [https://github.com/GGN-2015/py_xulang](https://github.com/GGN-2015/py_xulang).
 
-## Standard Libarary
-See `./xulang/include/Std/*.xu` on [https://github.com/GGN-2015/py_xulang](https://github.com/GGN-2015/py_xulang).
+## Standard Library
+See `./xulang/include/Std/*.xu` on [https://github.com/GGN-2015/py_xulang](https://github.com/GGN-2015/py_xulang). It's not necessary to use standard library since most of ther utilities can be easily mannually implemented, they just come as examples.

@@ -43,7 +43,7 @@ def match_brace_sequence(
             
             elif tmp_seq[index].has_star: # 匹配后面全部内容
                 if SimpleTerm.is_const_val(tmp_seq[index].serialize()[1:]):
-                    raise ValueError()
+                    raise ValueError(f"Star match \"{tmp_seq[index].serialize()}\" should use variable name not constant name \"{tmp_seq[index].serialize()[1:]}\".")
 
                 # 通配符只能出现在右括号前
                 if index != len(tmp_seq) - 1:

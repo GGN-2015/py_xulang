@@ -362,8 +362,10 @@ class FileRunner:
             if first_cmd.command.find("=>") != -1: # 新增规则命令
                 if self.verbose:
                     print("NEWR:", first_cmd.command)
-                self.rule_set.add_rule(
-                    ValueMap.deserialize(first_cmd.command))
+                self.rule_set.add_rule( # 将规则加入规则集合
+                    ValueMap.deserialize(first_cmd.command), 
+                    first_cmd.filepath, 
+                    first_cmd.line_id)
         
             else: # 执行命令并输出计算结果
                 value_term = ValueTerm.deserialize(f"[{first_cmd.command.strip()}]")

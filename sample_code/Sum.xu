@@ -2,14 +2,10 @@
 #include Std/Num.xu
 #include Std/Reduce.xu
 
-(My.GenList (0)) => ()
-(My.GenList (*max_val)) =>               \
-(Array.Merge                             \
-    (My.GenList (Num.SubOne (*max_val))) \
-    ((*max_val))                         \
-)
-
 (MaxVal) => (Array.Rev (1 2))
-(ArrayNow) => (My.GenList (MaxVal))
 
+// generate a list from 1 to MaxVal
+(ArrayNow) => (Num.GenList (MaxVal))
+
+// sum up a list
 Total Sum From 1 To (Array.Expand (Array.Rev (MaxVal))) Is (Array.Expand (Array.Rev (Array.Head (Reduce.Sum (ArrayNow)))))

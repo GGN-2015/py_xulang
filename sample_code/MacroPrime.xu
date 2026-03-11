@@ -3,7 +3,7 @@
 
 // Preprocess Scripts like #if, #define is available in xulang
 // But they are not necessary to this language
-// 
+// You can use them to facilitate your programming
 (N) => (Array.Rev (1 2))
 
 // Two parenthesized expressions immediately follow #if

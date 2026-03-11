@@ -15,6 +15,38 @@
 (Num.DigitAddOne 8) => 9 
 (Num.DigitAddOne 9) => 0 
 
+(Num.IsEven (0 *a)) => TRUE
+(Num.IsEven (1 *a)) => FALSE
+(Num.IsEven (2 *a)) => TRUE
+(Num.IsEven (3 *a)) => FALSE
+(Num.IsEven (4 *a)) => TRUE
+(Num.IsEven (5 *a)) => FALSE
+(Num.IsEven (6 *a)) => TRUE
+(Num.IsEven (7 *a)) => FALSE
+(Num.IsEven (8 *a)) => TRUE
+(Num.IsEven (9 *a)) => FALSE
+
+(Num.IsOdd (1 *a)) => TRUE
+(Num.IsOdd (2 *a)) => FALSE
+(Num.IsOdd (3 *a)) => TRUE
+(Num.IsOdd (4 *a)) => FALSE
+(Num.IsOdd (5 *a)) => TRUE
+(Num.IsOdd (6 *a)) => FALSE
+(Num.IsOdd (7 *a)) => TRUE
+(Num.IsOdd (8 *a)) => FALSE
+(Num.IsOdd (9 *a)) => TRUE
+(Num.IsOdd (0 *a)) => FALSE
+
+(Num.Div10 (a)) => (0)
+(Num.Div10 (a *b)) => (*b)
+
+(Num.Mul10 (0)) => (0)
+(Num.Mul10 (a)) => (0 a)
+(Num.Mul10 (a *b)) => (0 a *b)
+
+// All integer values in the xulang standard library are represented 
+//   as a list of digits in reverse order
+// For readability, you can use Array.Rev to reverse them before display
 (Num.AddOne (9)) => (0 1)
 (Num.AddOne (a)) => ((Num.DigitAddOne a))
 (Num.AddOne (9 *b)) => (Array.Merge (0) (Num.AddOne (*b)))
@@ -31,6 +63,7 @@
 (Num.DigitSubOne 8) => 7
 (Num.DigitSubOne 9) => 8
 
+(Num.DelHeadZero (0)) => (0)
 (Num.DelHeadZero (0 *a)) => (*a)
 (Num.DelHeadZero (*a)) => (*a)
 (Num.DelTailZero (*a)) => (Array.Rev (Num.DelHeadZero (Array.Rev (*a))))
@@ -40,14 +73,90 @@
 (Num.SubOne (0 *b)) => (Num.DelTailZero (Array.Merge (9) (Num.SubOne (*b))))
 (Num.SubOne (a *b)) => ((Num.DigitSubOne a) *b)
 
+(Num.GetSecondDigit ()) => 0
+(Num.GetSecondDigit (a)) => 0
+(Num.GetSecondDigit (a b *c)) => b
+
 (Num.Add (0) (*a)) => (*a)
-(Num.Add (*a) (*b)) => (Num.Add (Num.SubOne (*a)) (Num.AddOne (*b)))
+(Num.Add (*a) (0)) => (*a)
+(Num.Add (1) (*a)) => (Num.AddOne (*a))
+(Num.Add (*a) (1)) => (Num.AddOne (*a))
+(Num.Add (a0) (b0)) => (Num.Add (Num.SubOne (a0)) (Num.AddOne (b0)))
+(Num.Add (a0) (0 1)) => (a0 1)
+(Num.Add (0 1) (a0)) => (a0 1)
+(Num.Add (a0) (b0 *b1)) =>                         \
+(Array.Merge                                       \
+    ((Array.Head (Num.Add (a0) (b0))))             \
+    (Num.Add                                       \
+        ((Num.GetSecondDigit (Num.Add (a0) (b0)))) \
+        (*b1)                                      \
+    )                                              \
+)
+(Num.Add (b0 *b1) (a0)) =>                         \
+(Array.Merge                                       \
+    ((Array.Head (Num.Add (a0) (b0))))             \
+    (Num.Add                                       \
+        ((Num.GetSecondDigit (Num.Add (a0) (b0)))) \
+        (*b1)                                      \
+    )                                              \
+)
+(Num.Add (a0 *a1) (b0 *b1)) =>                     \
+(Array.Merge                                       \
+    ((Array.Head (Num.Add (a0) (b0))))             \
+    (Num.Add                                       \
+        ((Num.GetSecondDigit (Num.Add (a0) (b0)))) \
+        (Num.Add (*a1) (*b1))                      \
+    )                                              \
+)
+
+
+(Num.Mod2 (a0 *a1)) => (Logic.If (Num.IsOdd a0) (1) (0))
+(Num.Div2 (0)) => (0)
+(Num.Div2 (1)) => (0)
+(Num.Div2 (2)) => (1)
+(Num.Div2 (3)) => (1)
+(Num.Div2 (4)) => (2)
+(Num.Div2 (5)) => (2)
+(Num.Div2 (6)) => (3)
+(Num.Div2 (7)) => (3)
+(Num.Div2 (8)) => (4)
+(Num.Div2 (9)) => (4)
+(Num.Div2 (a0 *a1)) =>                       \
+(Num.Add                                     \
+    (Num.Mul10 (Num.Div2 (*a1)))             \
+    (Num.Add                                 \
+        (Logic.If (Num.IsOdd (*a1)) (5) (0)) \
+        (Num.Div2 (a0))                      \
+    )                                        \
+)
+
+(Num.EvenDiv2 (*a)) => \
+(Logic.If              \
+    (Num.IsEven (*a))  \
+    (Num.Div2 (*a))    \
+    (*a)               \
+)
 
 (Num.Sub (*a) (0)) => (*a)
+(Num.Sub (0) (*a)) => (0)
 (Num.Sub (*a) (*b)) => (Num.Sub (Num.SubOne (*a)) (Num.SubOne (*b)))
 
 (Num.Mul (*a) (0)) => (0)
-(Num.Mul (*a) (*b)) => (Num.Add (Num.Mul (*a) (Num.SubOne (*b))) (*a))
+(Num.Mul (0) (*a)) => (0)
+(Num.Mul (a0) (b0)) => (Num.Add (Num.Mul (a0) (Num.SubOne (b0))) (a0))
+(Num.Mul (a0) (b0 *b1)) => (Num.Mul (b0 *b1) (a0))
+(Num.Mul (a0 *a1) (b0)) =>           \
+(Num.Add                             \
+    (Num.Mul10 (Num.Mul (*a1) (b0))) \
+    (Num.Mul (a0) (b0))              \
+)
+(Num.Mul (a0 *a1) (b0 *b1)) =>           \
+(Num.Add                                 \
+    (Num.Mul10 (Num.Mul (*a1) (b0 *b1))) \
+    (Num.Mul (a0) (b0 *b1))              \
+)
+
+(Num.Mul2 (*a)) => (Num.Add (*a) (*a))
 
 (Num.Leq (0) (*a)) => TRUE
 (Num.Leq (0) (0)) => TRUE

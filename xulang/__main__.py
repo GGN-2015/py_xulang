@@ -1,4 +1,6 @@
 import sys
+sys.setrecursionlimit(5000) # 设置最大递归深度
+
 import os
 import json
 from . import FileRunner, get_version

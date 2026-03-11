@@ -4,6 +4,8 @@
 
 (VAL) => (Array.Rev (1 7))
 
+// If you want to write one expresion in multiple lines
+// Try use character "\" at the end of line to combine ajaccent lines
 (Array.Expand (Logic.If                             \
     (Math.IsPrime (VAL))                            \
     ((Array.Expand (Array.Rev (VAL))) Is Prime)     \

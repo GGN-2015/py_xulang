@@ -1,7 +1,25 @@
+#include Logic.xu
 #include Num.xu
 #include Select.xu
 
-(Math.ModCheck (*x) (*val_now)) => (Num.Neq (0) (Num.Mod (*x) (*val_now)))
+(Math.Gcd (*a) (0)) => (*a) 
+(Math.Gcd (0) (*a)) => (*a)
+(Math.Gcd (*a) (*b)) =>                                     \
+(Logic.If                                                   \
+    (Logic.And (Num.IsEven (*a)) (Num.IsEven (*b)))         \
+    (Num.Mul2 (Math.Gcd (Num.Div2 (*a)) (Num.Div2 (*b))))   \
+    (Logic.If                                               \
+        (Logic.Or (Num.IsEven (*a)) (Num.IsEven (*b)))      \
+        (Math.Gcd (Num.EvenDiv2 (*a)) (Num.EvenDiv2 (*b)))  \
+        (Logic.If                                           \
+            (Num.Geq (*a) (*b))                             \
+            (Math.Gcd (Num.Sub (*a) (*b)) (*b))             \
+            (Math.Gcd (Num.Sub (*b) (*a)) (*a))             \
+        )                                                   \
+    )                                                       \
+)
+
+(Math.ModCheck (*x) (*val_now)) => (Num.Equ (1) (Math.Gcd (*x) (*val_now)))
 (Math.IsPrimeCheck (*x) (*val_now)) =>                   \
 (Logic.If                                                \
     (Num.Gt (Num.Mul (*val_now) (*val_now)) (*x))        \
@@ -31,3 +49,6 @@
 ${CREATE_SELECT_FUNCTION}
 #undef FINAL_NAME
 #undef CONDITION_NAME
+
+(Math.Factorial (0)) => (1)
+(Math.Factorial (*n)) => (Num.Mul (Math.Factorial (Num.SubOne (*n))) (*n))

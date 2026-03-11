@@ -15,22 +15,29 @@ except:
     from Sequence import Sequence
     from BraceSequence import BraceSequence
 
+class ValueMapWrap:
+    def __init__(self, value_map:ValueMap, filepath:str, line_id:int) -> None:
+        self.value_map = value_map
+        self.filepath = filepath
+        self.line_id = line_id
+
 class RuleSet:
     def __init__(self) -> None:
-        self.value_map_list = []
-        self.latest_used_rule:Optional[ValueMap] = None
+        self.value_map_list:list[ValueMapWrap] = []
+        self.latest_used_rule:Optional[ValueMapWrap] = None
     
-    def add_rule(self, value_map: ValueMap): # 新增规则
+    def add_rule(self, value_map: ValueMap, filepath:str, line_id:int): # 新增规则
         if not isinstance(value_map, ValueMap):
             raise TypeError()
-        self.value_map_list.append(value_map)
+        self.value_map_list.append(ValueMapWrap(value_map, filepath, line_id))
 
     # 执行一次所有简单规则
     def execute_simple_rules(self, value_term:ValueTerm) -> tuple[bool, ValueTerm]:
         if not isinstance(value_term.value, BraceSequence):
             return False, value_term
     
-        for value_map in self.value_map_list:
+        for value_map_wrap in self.value_map_list:
+            value_map = value_map_wrap.value_map
 
             # 检查是否还能替换
             if isinstance(value_term.value, Sequence):
@@ -48,7 +55,7 @@ class RuleSet:
                 value_term = fill_value_term(
                     value_map.right, dic
                 )
-                self.latest_used_rule = value_map
+                self.latest_used_rule = value_map_wrap
                 return True, value_term
 
         # 返回最终结果
@@ -99,7 +106,7 @@ class RuleSet:
                 break
             if self.latest_used_rule is not None:
                 if verbose:
-                    print("\nRULE:", self.latest_used_rule.serialize())
+                    print("\nRULE:", self.latest_used_rule.value_map.serialize())
             if verbose:
                 print("OUTP:", value_term.serialize()[1:-1])
         return value_term
@@ -125,7 +132,9 @@ class RuleSet:
                 return True, value_term
             
             # 试图对当前层进行复杂规则替换
-            for value_map in self.value_map_list:
+            for value_map_wrap in self.value_map_list:
+                value_map = value_map_wrap.value_map
+                
                 assert isinstance(value_map, ValueMap)
                 assert isinstance(value_term.value, BraceSequence)
 
@@ -136,7 +145,7 @@ class RuleSet:
                     
                     if flag:
                         value_term = fill_value_term(value_map.right, dic)
-                        self.latest_used_rule = value_map
+                        self.latest_used_rule = value_map_wrap
                         return True, value_term
             
             return False, value_term
@@ -157,23 +166,23 @@ class RuleSet:
 if __name__ == "__main__":
     rule_set = RuleSet()
     rule_set.add_rule(ValueMap.deserialize("""
-        (IF TRUE a b) => a"""))
+        (IF TRUE a b) => a"""), "<TEST>", 1)
     rule_set.add_rule(ValueMap.deserialize("""
-        (IF FALSE a b) => b"""))
+        (IF FALSE a b) => b"""), "<TEST>", 2)
     rule_set.add_rule(ValueMap.deserialize("""
-        (HEAD ()) => """))
+        (HEAD ()) => """), "<TEST>", 3)
     rule_set.add_rule(ValueMap.deserialize("""
-        (HEAD (a *b)) => a"""))
+        (HEAD (a *b)) => a"""), "<TEST>", 4)
     rule_set.add_rule(ValueMap.deserialize("""
-        (REV ()) => ()"""))    
+        (REV ()) => ()"""), "<TEST>", 5)    
     rule_set.add_rule(ValueMap.deserialize("""
-        (REV (a)) => (a)"""))
+        (REV (a)) => (a)"""), "<TEST>", 6)
     rule_set.add_rule(ValueMap.deserialize("""
-        (REV (a *b)) => (MERGE (REV (*b)) (a))"""))
+        (REV (a *b)) => (MERGE (REV (*b)) (a))"""), "<TEST>", 7)
     rule_set.add_rule(ValueMap.deserialize("""
-        (MERGE (*a) (*b)) => (*a *b)"""))
+        (MERGE (*a) (*b)) => (*a *b)"""), "<TEST>", 8)
     rule_set.add_rule(ValueMap.deserialize("""
-        (TAIL (*a)) => (HEAD (REV (*a)))"""))
+        (TAIL (*a)) => (HEAD (REV (*a)))"""), "<TEST>", 9)
     
     for value_term_str in [
         "(IF TRUE 1 (TAIL (A B C D E)))",
@@ -181,5 +190,4 @@ if __name__ == "__main__":
     ]:
         print("=" * 40)
         value_term = ValueTerm.deserialize(f"[{value_term_str}]")
-        
-        
+        rule_set.calc(value_term, True)
