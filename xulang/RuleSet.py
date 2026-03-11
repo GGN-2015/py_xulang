@@ -7,6 +7,7 @@ try:
     from .FillValueTerm import fill_value_term
     from .Sequence import Sequence
     from .BraceSequence import BraceSequence
+    from .SimpleTerm import SimpleTerm
 except:
     from ValueMap import ValueMap
     from ValueTerm import ValueTerm
@@ -14,29 +15,149 @@ except:
     from FillValueTerm import fill_value_term
     from Sequence import Sequence
     from BraceSequence import BraceSequence
+    from SimpleTerm import SimpleTerm
 
 class ValueMapWrap:
-    def __init__(self, value_map:ValueMap, filepath:str, line_id:int) -> None:
+    def __init__(self, index:int, value_map:ValueMap, filepath:str, line_id:int) -> None:
         self.value_map = value_map
         self.filepath = filepath
         self.line_id = line_id
+        self.index = index # index 决定重新排序后的顺序
 
 class RuleSet:
     def __init__(self) -> None:
-        self.value_map_list:list[ValueMapWrap] = []
+
+        # self.value_map_dict 是用于快速检索可行命令的关键
+        # 该 dict 构建了一个映射：从第一个元素映射到对应的命令序列
+        # 如果某个 value_map.left 的第一个元素是常量，则应该放入这个常量对应的序列
+        # 否则应该放入 "" 对应的序列
+        # "" 对应的序列表示所有 value_map.left 中没有元素或者第一个元素不是常量的规则
+        self.value_map_dict:dict[str, list[ValueMapWrap]] = dict()
+
+        # 记录最后一次匹配所使用的命令信息
         self.latest_used_rule:Optional[ValueMapWrap] = None
+
+        # 记录当前规则集合中总共有多少条规则，用于给规则排序
+        self.rule_count_now = 0
     
+    def safe_append(self, dic: dict[str, list[ValueMapWrap]], key:str, val:ValueMapWrap):
+        if dic.get(key) is None:
+            dic[key] = []
+        dic[key].append(val)
+
     def add_rule(self, value_map: ValueMap, filepath:str, line_id:int): # 新增规则
         if not isinstance(value_map, ValueMap):
             raise TypeError()
-        self.value_map_list.append(ValueMapWrap(value_map, filepath, line_id))
+        if not isinstance(value_map.left, BraceSequence):
+            raise TypeError()
+
+        # 获得新的规则编号
+        self.rule_count_now += 1
+        
+        bad = False
+
+        # 先考虑没有任何元素的情况
+        item_cnt = len(value_map.left.inner_sequence.objects)
+        if (not bad) and item_cnt == 0:
+            bad = True
+        
+        # 试图获取第一个元素（如果没有元素则获取到空）
+        if not bad:
+            first_item = value_map.left.inner_sequence.objects[0]
+        else:
+            first_item = None
+        
+        # 有元素但是第一个元素不是 SimpleTerm
+        if (not bad) and not isinstance(first_item, SimpleTerm):
+            if not isinstance(first_item, BraceSequence):
+                raise TypeError()
+            bad = True
+        
+        # 第一个元素是 SimpleTerm 但不是常量
+        assert isinstance(first_item, SimpleTerm)
+        if (not bad) and not SimpleTerm.is_const_val(first_item.serialize()):
+            bad = True
+        
+        # 第一个元素不符合快速检索规则
+        if bad:
+            self.safe_append(
+                self.value_map_dict, "", # 放入空字符串对应的序列
+                ValueMapWrap(self.rule_count_now, value_map, filepath, line_id))
+        
+        # 第一个元素符合快速检索规则
+        else:
+            if not isinstance(first_item, SimpleTerm):
+                raise TypeError()
+            if not SimpleTerm.is_const_val(first_item.serialize()):
+                raise ValueError()
+            self.safe_append(
+                self.value_map_dict, first_item.serialize(), # 放入空字符串对应的序列
+                ValueMapWrap(self.rule_count_now, value_map, filepath, line_id))
+
+    # 获取所有可以使用的命令
+    # 在获取命令时根据第一个元素进行初筛
+    # 这种初筛可以显著提升算法效率
+    def get_all_value_map_wrap(self, first_item:Optional[str]) -> list[ValueMapWrap]:
+        arr = []
+
+        # first_item 为 None 表示不对第一个符号进行快速筛查
+        if first_item is None:
+            for item in self.value_map_dict:
+                arr += self.value_map_dict[item]
+
+        # 需要对第一个符号进行快速筛查
+        # 注意记得考虑 "" 对应的所有规则也需要参与比较
+        else:
+            for key_term in set([first_item, ""]): # 需要使用 set 去重，因为 first_item 可能是 ""
+                if self.value_map_dict.get(key_term) is not None:
+                    arr += self.value_map_dict[key_term]
+
+        # 按照插入顺序排序（保证优先级正确）
+        return sorted(arr, key=lambda x:x.index)
+
+    # 显示所有的规则
+    def show_rules(self, prefix:Optional[str]) -> str:
+        int_width = len(str(len(self.get_all_value_map_wrap(None)))) + 1 # 编号需要的宽度
+        arr = [
+            ((
+                ("%" + str(int_width) + "d ")
+                    % value_map_wrap.index) 
+                + value_map_wrap.value_map.serialize() + "\n"
+            )
+            for value_map_wrap in self.get_all_value_map_wrap(prefix)
+        ]
+        return "".join(arr)
+    
+    # 根据 value_term 中内容的第一个元素进行快速分类
+    def select_first_term_key(self, value_term:ValueTerm):
+        if not isinstance(value_term.value, BraceSequence):
+            raise AssertionError()
+        
+        # 如果其中没有元素
+        if len(value_term.value.inner_sequence.objects) == 0:
+            return ""
+        
+        # 如果其中有至少一个元素
+        # 如果这个元素是复杂元素，也不可能和任意常量进行匹配
+        first_item = value_term.value.inner_sequence.objects[0]
+        if not isinstance(first_item, SimpleTerm):
+            return ""
+        
+        # 理论上 value_term 中不可以存在变量，因此只要有 SimpleTerm 就一定是常量
+        if not SimpleTerm.is_const_val(first_item.serialize()):
+            raise AssertionError()
+        return first_item.serialize()
 
     # 执行一次所有简单规则
     def execute_simple_rules(self, value_term:ValueTerm) -> tuple[bool, ValueTerm]:
         if not isinstance(value_term.value, BraceSequence):
             return False, value_term
-    
-        for value_map_wrap in self.value_map_list:
+        
+        # 计算初筛分类
+        first_term_key = self.select_first_term_key(value_term)
+
+        # 根据初筛分类快速排除对象
+        for value_map_wrap in self.get_all_value_map_wrap(first_term_key):
             value_map = value_map_wrap.value_map
 
             # 检查是否还能替换
@@ -131,8 +252,11 @@ class RuleSet:
             if flag:
                 return True, value_term
             
+            
             # 试图对当前层进行复杂规则替换
-            for value_map_wrap in self.value_map_list:
+            # 此时仍然需要根据第一个对象进行快速初筛
+            first_item_key = self.select_first_term_key(value_term)
+            for value_map_wrap in self.get_all_value_map_wrap(first_item_key):
                 value_map = value_map_wrap.value_map
                 
                 assert isinstance(value_map, ValueMap)

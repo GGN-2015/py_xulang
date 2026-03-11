@@ -11,6 +11,7 @@ try:
     from .BraceSequence import BraceSequence
     from .MatchBraceSequence import match_brace_sequence
     from .VarSet import VarSet
+    from .SimpleTerm import SimpleTerm
 except:
     from RuleSet import RuleSet
     from ValueMap import ValueMap
@@ -19,6 +20,7 @@ except:
     from BraceSequence import BraceSequence
     from MatchBraceSequence import match_brace_sequence
     from VarSet import VarSet
+    from .SimpleTerm import SimpleTerm
 
 # 当前目录
 DIRNOW = os.path.dirname(
@@ -187,10 +189,12 @@ class FileRunner:
         else:
             return end_if_list[0]
         
-    # 执行特殊命令（井号开头的命令）
-    def execute_special_cmd(self, cmd_now:CommandWrap):
+    # 执行预处理器命令（井号开头的命令）
+    # 注意：预处理命令中不会执行任何宏替换
+    # 只有非预处理命令才会执行宏替换
+    def execute_preprocessor_cmd(self, cmd_now:CommandWrap):
         if self.verbose:
-            print("FROM:", cmd_now.command.strip()) # 特殊命令就输出一个原始命令就行
+            print("PCMD:", cmd_now.command.strip()) # 特殊命令就输出一个原始命令就行
         
         # 分离命令头部和命令内容
         try:
@@ -199,7 +203,10 @@ class FileRunner:
         except:
             first_part = cmd_now.command.strip()
             other_part = ""
-        assert first_part.startswith("#")
+        
+        # 预处理命令必须是 # 开头的
+        if not first_part.startswith("#"):
+            raise AssertionError()
         first_part = first_part[1:]
 
         # 在这里给出所有特殊命令对应的列表
@@ -222,7 +229,7 @@ class FileRunner:
                 print(f"Bye. \n(#exit from {cmd_now.filepath}:{cmd_now.line_id})")
             self.interactive_cli = False 
 
-        # 宏判断语句
+        # 预处理判断语句
         # 用法：#if value_1 value_2
         # 如果 value_2 的计算结果，可以和 value_1 中给出的模式匹配
         # 因此 value_1 和 value_2 必须都是括号表达式
@@ -308,11 +315,25 @@ class FileRunner:
                 raise ValueError(f"var name \"{var_name}\" is not allowed.")
             self.var_set.undef_var(var_name)
 
+        # 显示所有匹配规则
+        elif first_part == "rule":
+            if other_part.strip() == "":
+                print(self.rule_set.show_rules(None))
+
+            else:
+                if other_part.strip() == "()": # 通过 #rule () 命令显示所有杂项
+                    print(self.rule_set.show_rules(""))
+                else:
+                    if not SimpleTerm.is_const_val(other_part.strip()):
+                        raise ValueError("parameter after \"#rule\" should be const value or ().")
+                    print(self.rule_set.show_rules(other_part.strip()))
+
         # 没有匹配到相关命令
         else:
-            raise ValueError(f"Special command \"#{first_part}\" not found!")
+            raise ValueError(f"Preprocessor command \"#{first_part}\" not found!")
 
     # 执行指定的命令
+    # 注意：只有非预处理语句才需要执行宏替换
     def execute_cmd(self, first_cmd:CommandWrap):
 
         # 开始考虑当前命令的执行
@@ -327,6 +348,10 @@ class FileRunner:
         # 宏替换过程在所有东西之前做
         # 对于井号开头的命令，不做任何替换处理
         # 只对于一般语句进行替换处理
+        #   宏替换时，需要对 \n 进行展开（将其展开成换行符）
+        #   因此，同一条语句在宏替换后，可能被展开成多条语句
+        #   preprocesspr_output 中存储这些被展开后的语句
+        #   展开后的语句中一定没有 ${...} 结构，因此不会再次需要宏替换
         if not first_cmd.command.strip().startswith("#"):
             preprocesspr_output = self.var_set.solve(first_cmd.command)
             preprocesspr_output = [
@@ -345,7 +370,7 @@ class FileRunner:
             if len(preprocesspr_output) == 0:
                 return
             
-            # 如果有多行命令，本次执行只能执行一条
+            # 如果展开后有多行命令，本次执行只能执行一条
             # 其余命令保持相同的行号，放在下次执行时再说
             elif len(preprocesspr_output) >= 1:
                 first_cmd.command = preprocesspr_output[0]
@@ -356,7 +381,7 @@ class FileRunner:
                 self.cmd_list = new_cmd_list + self.cmd_list # 首部追加
 
         if first_cmd.command.startswith("#"): # 特殊命令
-            self.execute_special_cmd(first_cmd)
+            self.execute_preprocessor_cmd(first_cmd)
 
         else:
             if first_cmd.command.find("=>") != -1: # 新增规则命令

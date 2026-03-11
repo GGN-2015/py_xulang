@@ -36,12 +36,22 @@ def split_include_path(argv_list:list[str]) -> tuple[list[str], list[str]]:
         for include_path in include_path_list
     ]
 
+# 检查某个字符串是否存在
+# 并返回删除该字符串后的结果
+def check_and_erase(argv_list:list[str], aim_str:str) -> tuple[list[str], bool]:
+    ans = aim_str in argv_list
+    new_argv_list = [
+        item
+        for item in argv_list
+        if item != aim_str
+    ]
+    return new_argv_list, ans
+
 def main(argv_list:list[str]) -> int:
     argv_list, inlcude_path_list = split_include_path(argv_list)
 
-    # 检查 --verbose
-    verbose = ("--verbose" in argv_list)
-    argv_list = [item for item in argv_list if item != "--verbose"]
+    # 检查 --verbose：是否需要逐条输出匹配过程
+    argv_list, verbose = check_and_erase(argv_list, "--verbose")
 
     try:
         file_runner = FileRunner(inlcude_path_list)
