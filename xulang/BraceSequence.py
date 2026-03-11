@@ -57,6 +57,11 @@ class BraceSequence:
     # 找不到则返回 None
     def get_one_var(self) -> Optional[str]:
         return self.inner_sequence.get_one_var()
+    
+    # 一种简单的使用 tuple 和 list of str 表示数据的方式
+    # 在 python 传参接口中使用
+    def simple_express(self) -> tuple[str]:
+        return tuple(self.inner_sequence.simple_express()) # type:ignore
 
 # 传参方式传递类型对象
 BRACE_SEQUENCE_CLASS_META_OBJECT[0] = BraceSequence # type: ignore
@@ -65,3 +70,5 @@ if __name__ == "__main__":
     item = BraceSequence.deserialize("(a (b (*c) *f d) e)")
     print(item.serialize())
     print(BraceSequence.from_json_obj(item.json_obj()).serialize())
+
+    print(item.simple_express())

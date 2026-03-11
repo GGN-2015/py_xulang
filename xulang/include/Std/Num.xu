@@ -1,8 +1,6 @@
 #include Array.xu
 #include Logic.xu
 
-(Num.Zero) => (0)
-
 (Num.IsZero (0)) => TRUE
 (Num.IsZero (*a)) => FALSE
 
@@ -68,3 +66,10 @@
 (Num.Mod (*a) (0)) => (0)
 (Num.Mod (0) (*a)) => (0)
 (Num.Mod (*a) (*b)) => (Num.Sub (*a) (Num.Mul (Num.Div (*a) (*b)) (*b)))
+
+(Num.GenList (0)) => ()
+(Num.GenList (*max_val)) =>               \
+(Array.Merge                             \
+    (Num.GenList (Num.SubOne (*max_val))) \
+    ((*max_val))                         \
+)

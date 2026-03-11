@@ -1,0 +1,17 @@
+#include Array.xu
+
+// ${MAP_NAME} stores the pre-defined mapping function for a single element
+// ${FINAL_NAME} stores the name of the new mapping to be defined in the future
+#define CREATE_MAP_FUNCTION (${FINAL_NAME} ()) => () \n\
+    (${FINAL_NAME} (a *b)) => (Array.Merge ((${MAP_NAME} a)) (${FINAL_NAME} (*b)))
+
+// The following five statements are an exemplary usage of CREATE_MAP_FUNCTION
+// After execution, a Map mapping named Map.RevAll will be defined
+// Its function is to execute the mapping named Array.Rev on each element in the list
+// You SHOULD NOT #undef CREATE_MAP_FUNCTION after use.
+// But you MUST #undef FINAL_NAME and MAP_NAME after use.
+#define FINAL_NAME Map.RevAll 
+#define MAP_NAME   Array.Rev
+${CREATE_MAP_FUNCTION}
+#undef FINAL_NAME
+#undef MAP_NAME

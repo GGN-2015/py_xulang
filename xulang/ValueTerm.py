@@ -38,8 +38,16 @@ class ValueTerm:
         if not s.endswith("]"):
             raise ValueError()
         s = s[1:-1].strip()
-        value = (BraceSequence.deserialize(s) 
-            if s.startswith("(") else Sequence.deserialize(s))
+
+        # 为了正确序列化匹配的括号
+        # 我们这里先假设对象是一个 Sequence
+        value = Sequence.deserialize(s)
+
+        # 如果发现这个 Sequence 中唯一的元素就是 BraceSequence
+        # 再把这个元素拿出来
+        if len(value.objects) == 1 and isinstance(value.objects[0], BraceSequence):
+            value = value.objects[0]
+        
         new_item = ValueTerm()
         new_item.value = value
         return new_item
@@ -65,13 +73,27 @@ class ValueTerm:
     def get_one_var(self) -> Optional[str]:
         return self.value.get_one_var()
     
+    # 一种简单的数据表达方式
+    # 在 python 传参接口中使用
+    def simple_express(self) -> list:
+        if isinstance(self.value, BraceSequence):
+            return [self.value.simple_express()]
+        else:
+            if not isinstance(self.value, Sequence):
+                raise TypeError()
+            return self.value.simple_express()
+
 if __name__ == "__main__":
     test_list = [
         "[]",            # 没有元素 Sequence
         "[a]",           # 单个元素 Sequence
         "[a (b c) d]",   # 三个元素 Sequence
         "[(a (b c) d)]", # 一个 BraceSequence
+        "[(a b) (c d)]", # 多个 BraceSequence
     ]
     for value in test_list:
-        print(ValueTerm.deserialize(value).serialize())
-        print(ValueTerm.from_json_obj(ValueTerm.deserialize(value).json_obj()).serialize())
+        value_term = ValueTerm.deserialize(value)
+        print(value_term.serialize())
+        print(ValueTerm.from_json_obj(value_term.json_obj()).serialize())
+        print(value_term.simple_express())
+        print()

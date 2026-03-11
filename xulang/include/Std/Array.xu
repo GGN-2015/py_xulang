@@ -15,5 +15,4 @@
 (Array.Tail ()) => (Array.Error.Empty)
 (Array.Tail (*a)) => (Array.Head (Array.Rev (*a)))
 
-(Array.RevAll ()) => ()
-(Array.RevAll (a *b)) => (Array.Merge ((Array.Rev a)) (Array.RevAll (*b)))
+(Array.Expand (*a)) => *a

@@ -135,3 +135,24 @@ class Sequence:
             if one_var is not None:
                 return one_var
         return None
+    
+    # 一种简单的使用 tuple 和 list of str 表示数据的方式
+    # 在 python 传参接口中使用
+    def simple_express(self) -> list[str]:
+        return [
+            term.simple_express()
+            for term in self.objects
+        ]
+
+if __name__ == "__main__":
+    if BRACE_SEQUENCE_CLASS_META_OBJECT[0] is None:
+        from BraceSequence import BraceSequence
+        BRACE_SEQUENCE_CLASS_META_OBJECT[0] = BraceSequence # type: ignore
+    
+    for item_str in [
+        "a (x y) (z)",
+        "(x y) (p q)"
+    ]:
+        sequence_item = Sequence.deserialize(item_str)
+        print(sequence_item.serialize())
+        print(Sequence.from_json_obj(sequence_item.json_obj()).serialize())

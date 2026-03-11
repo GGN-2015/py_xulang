@@ -1,7 +1,16 @@
 #include Num.xu
+#include Select.xu
 
 (Math.ModCheck (*x) (*val_now)) => (Num.Neq (0) (Num.Mod (*x) (*val_now)))
-(Math.IsPrimeCheck (*x) (*val_now)) => (Logic.If (Num.Gt (Num.Mul (*val_now) (*val_now)) (*x)) TRUE (Logic.And (Math.ModCheck (*x) (*val_now)) (Math.IsPrimeCheck (*x) (Num.AddOne (*val_now)))))
+(Math.IsPrimeCheck (*x) (*val_now)) =>                   \
+(Logic.If                                                \
+    (Num.Gt (Num.Mul (*val_now) (*val_now)) (*x))        \
+    TRUE                                                 \
+    (Logic.And                                           \
+        (Math.ModCheck (*x) (*val_now))                  \
+        (Math.IsPrimeCheck (*x) (Num.AddOne (*val_now))) \
+    )                                                    \
+)
 
 (Math.IsPrime (0)) => FALSE
 (Math.IsPrime (1)) => FALSE
@@ -9,4 +18,16 @@
 (Math.IsPrime (*x)) => (Math.IsPrimeCheck (*x) (2))
 
 (Math.PrimeTable (0)) => ()
-(Math.PrimeTable (*max_val)) => (Array.Merge (Math.PrimeTable (Num.SubOne (*max_val))) (Logic.If (Math.IsPrime (*max_val)) ((*max_val)) ()))
+(Math.PrimeTable (*max_val)) =>                          \
+(Array.Merge                                             \
+    (Math.PrimeTable (Num.SubOne (*max_val)))            \
+    (Logic.If (Math.IsPrime (*max_val)) ((*max_val)) ()) \
+)
+
+// Select all prime number from a list
+// Sample usage of CREATE_SELECT_FUNCTION
+#define FINAL_NAME     Math.SelectPrime
+#define CONDITION_NAME Math.IsPrime
+${CREATE_SELECT_FUNCTION}
+#undef FINAL_NAME
+#undef CONDITION_NAME

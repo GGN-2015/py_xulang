@@ -1,0 +1,11 @@
+#include Std/Array.xu
+#include Std/Logic.xu
+#include Std/Math.xu
+
+(VAL) => (Array.Rev (1 7))
+
+(Array.Expand (Logic.If                             \
+    (Math.IsPrime (VAL))                            \
+    ((Array.Expand (Array.Rev (VAL))) Is Prime)     \
+    ((Array.Expand (Array.Rev (VAL))) Is Not Prime) \
+))

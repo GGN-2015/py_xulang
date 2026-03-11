@@ -1,0 +1,11 @@
+#include Array.xu
+#include Logic.xu
+
+// Sample usage of CREATE_SELECT_FUNCTION can be seen in Std/Math.xu
+#define CREATE_SELECT_FUNCTION                    \
+(${FINAL_NAME} ()) => ()                        \n\
+(${FINAL_NAME} (a *b)) =>                         \
+    (Array.Merge                                  \
+        (Logic.If (${CONDITION_NAME} a) (a) ())   \
+        (${FINAL_NAME} (*b))                      \
+    )

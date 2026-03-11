@@ -17,11 +17,11 @@ class SimpleTerm:
         if msg == ".":
             raise ValueError('"." is not an available identifier.') # 不能只留一个下划线
         if msg.find("..") != -1:
-            raise ValueError('No consecutive dots in identifier.')
+            raise ValueError(f'No consecutive dots in identifier. (see \"{msg}\")')
         if msg.startswith("."):
-            raise ValueError('No leading dot in identifier.')
+            raise ValueError(f'No leading dot in identifier. (see \"{msg}\")')
         if msg.endswith("."):
-            raise ValueError("No trailing dot in identifier.")
+            raise ValueError(f"No trailing dot in identifier. (see \"{msg}\")")
         for i in range(len(msg)):
             if msg[i] not in (["_", "."] + [
                     char_now for char_now in string.ascii_letters
@@ -80,6 +80,11 @@ class SimpleTerm:
             return None
         else:
             return self.serialize()
+    
+    # 一种简单的使用 tuple 和 list of str 表示数据的方式
+    # 在 python 传参接口中使用
+    def simple_express(self) -> str:
+        return self.serialize()
 
 if __name__ == "__main__":
     term = SimpleTerm.init("hello", False)

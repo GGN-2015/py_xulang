@@ -1,0 +1,13 @@
+#include Std/Array.xu
+#include Std/Math.xu
+
+(VAL) => (Array.Rev (1 2))
+
+// Two parenthesized expressions immediately follow #if
+// The first is the template, and the second is the evaluation expression
+// If the result of the evaluation expression matches the template, execute the content after #if
+#if (TRUE) ((Math.IsPrime (VAL)))
+    (Array.Expand ((Array.Expand (Array.Rev (VAL))) Is Prime))
+#else
+    (Array.Expand ((Array.Expand (Array.Rev (VAL))) Is Not Prime))
+#endif

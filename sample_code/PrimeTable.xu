@@ -1,0 +1,8 @@
+#include Std/Array.xu
+#include Std/Map.xu
+#include Std/Math.xu
+
+(VAL) => (Array.Rev (1 5))
+
+All Prime Under (Array.Expand (Array.Rev (VAL)))
+(Array.Expand (Map.RevAll (Math.PrimeTable (VAL))))

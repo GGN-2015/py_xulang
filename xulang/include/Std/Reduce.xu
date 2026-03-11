@@ -1,0 +1,22 @@
+#include Array.xu
+#include Num.xu
+
+// ${REDUCE_NAME} stores the pre-defined merging function for a single element
+// ${FINAL_NAME} stores the name of the new reduction to be defined in the future
+// ${EMPTY_VALUE} stores the result when the array is empty
+#define CREATE_REDUCE_FUNCTION (${FINAL_NAME} ()) => ${EMPTY_VALUE} \n\
+    (${FINAL_NAME} (a)) => (a) \n\
+    (${FINAL_NAME} (a1 a2 *rest)) => (${FINAL_NAME} ((${REDUCE_NAME} a1 a2) *rest))
+
+// The following six statements are an exemplary usage of CREATE_REDUCE_FUNCTION
+// After execution, a Reduce mapping named Reduce.Sum will be defined
+// Its function is to execute the mapping named Array.Rev on each element in the list
+// You SHOULD NOT #undef CREATE_REDUCE_FUNCTION after use.
+// But you MUST #undef FINAL_NAME, MAP_NAME and EMPTY_VALUE after use.
+#define FINAL_NAME  Reduce.Sum
+#define EMPTY_VALUE (0)
+#define REDUCE_NAME Num.Add
+${CREATE_REDUCE_FUNCTION}
+#undef FINAL_NAME
+#undef EMPTY_VALUE
+#undef REDUCE_NAME

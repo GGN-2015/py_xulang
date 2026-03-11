@@ -1,0 +1,12 @@
+#include Std/Array.xu
+#include Std/Map.xu
+#include Std/Math.xu
+#include Std/Num.xu
+#include Std/Select.xu
+
+(MaxVal) => (Array.Rev (1 5))
+
+(ArrayNow) => (Num.GenList (MaxVal))
+Before Selection (Array.Expand (Map.RevAll (ArrayNow)))
+
+After Selection (Array.Expand (Map.RevAll (Math.SelectPrime (ArrayNow))))

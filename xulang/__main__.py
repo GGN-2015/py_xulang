@@ -62,8 +62,10 @@ def main(argv_list:list[str]) -> int:
 
         filepath = argv_list[0]
         if not os.path.isfile(filepath):
-            print(f"File \"{filepath}\" not found!")
+            print(f"<CMD>:1 File \"{filepath}\" not found!")
             return 1
+        if not os.path.isabs(filepath): # 需要使用绝对路径调用程序
+            filepath = os.path.abspath(filepath)
         file_runner.run_file(filepath)
 
     return 0
