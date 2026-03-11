@@ -2,7 +2,7 @@
 #include Std/Map.xu
 #include Std/Math.xu
 
-(VAL) => (Array.Rev (1 0 0))
+(VAL) => (Array.Rev (1 0))
 
 All Prime Under (Array.Expand (Array.Rev (VAL)))
 (Array.Expand (Map.RevAll (Math.PrimeTable (VAL))))

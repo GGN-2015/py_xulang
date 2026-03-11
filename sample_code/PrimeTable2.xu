@@ -4,7 +4,7 @@
 #include Std/Num.xu
 #include Std/Select.xu
 
-(MaxVal) => (Array.Rev (1 0 0))
+(MaxVal) => (Array.Rev (1 0))
 
 (ArrayNow) => (Num.GenList (MaxVal))
 Before Selection (Array.Expand (Map.RevAll (ArrayNow)))

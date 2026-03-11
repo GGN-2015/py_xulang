@@ -412,7 +412,7 @@ class FileRunner:
         try:
             self.execute_cmd(first_cmd)
         except Exception as e:
-            if self.extra_error_info or str(e) == "": # 报错信息太简单时候必须提供错误理由
+            if self.extra_error_info or str(e) == "" or self.verbose: # 报错信息太简单时候必须提供错误理由
                 extra_info = f"\n{traceback.format_exc()}"
             else:
                 extra_info = ""

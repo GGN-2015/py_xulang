@@ -1,0 +1,45 @@
+#include Std/Logic.xu
+#include Std/Num.xu
+#include Std/Seek.xu
+#include Std/Select.xu
+
+(Sort.SortInt ()) => ()
+(Sort.SortInt (a)) => (a)
+(Sort.SortInt (a b)) => \
+(Logic.If               \
+    (Num.Lt a b)        \
+    (a b)               \
+    (b a)               \
+)
+(Sort.SortInt (a b c)) =>                        \
+(Logic.If                                        \
+    (Logic.And (Num.Leq a b) (Num.Leq a c))      \
+    (Array.Merge (a) (Sort.SortInt (b c)))       \
+    (Logic.If                                    \
+        (Logic.And (Num.Leq b a) (Num.Leq b c))  \
+        (Array.Merge (b) (Sort.SortInt (a c)))   \
+        (Array.Merge (c) (Sort.SortInt (a b)))   \
+    )                                            \
+)
+
+(Sort.MidTermInThree (a b c)) => (Seek.Get (1) (Sort.SortInt (a b c)))
+
+// CREATE_SELECT_FUNCTION_P1 is defined in "Std/Select.xu"
+#define FINAL_NAME     Sort.SelectLeq
+#define CONDITION_NAME Num.Leq
+${CREATE_SELECT_FUNCTION_P1}
+#undef FINAL_NAME
+#undef CONDITION_NAME
+
+// CREATE_SELECT_FUNCTION_P1 is defined in "Std/Select.xu"
+#define FINAL_NAME     Sort.SelectGt
+#define CONDITION_NAME Num.Gt
+${CREATE_SELECT_FUNCTION_P1}
+#undef FINAL_NAME
+#undef CONDITION_NAME
+
+(Sort.SortInt (a b *arr)) =>      \
+(Array.Merge                      \
+    (Sort.SortInt (Sort.SelectLeq (Sort.MidTermInThree (a b (Array.Tail (*arr)))) (a b *arr))) \
+    (Sort.SortInt (Sort.SelectGt  (Sort.MidTermInThree (a b (Array.Tail (*arr)))) (a b *arr))) \
+)

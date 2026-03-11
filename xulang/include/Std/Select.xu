@@ -3,10 +3,26 @@
 
 // Sample usage of CREATE_SELECT_FUNCTION can be seen in Std/Math.xu
 // See Math.SelectPrime
-#define CREATE_SELECT_FUNCTION                    \
-(${FINAL_NAME} ()) => ()                        \n\
-(${FINAL_NAME} (a *b)) =>                         \
-    (Array.Merge                                  \
-        (Logic.If (${CONDITION_NAME} a) (a) ())   \
-        (${FINAL_NAME} (*b))                      \
-    )
+#define CREATE_SELECT_FUNCTION   \
+(${FINAL_NAME} ()) => ()       \n\
+(${FINAL_NAME} (a *b)) =>        \
+(Array.Merge                     \
+    (Logic.If                    \
+        (${CONDITION_NAME} a)    \
+        (a)                      \
+        ()                       \
+    )                            \
+    (${FINAL_NAME} (*b))         \
+)
+
+#define CREATE_SELECT_FUNCTION_P1    \
+(${FINAL_NAME} p1 ()) => ()        \n\
+(${FINAL_NAME} p1 (a *b)) =>         \
+(Array.Merge                         \
+    (Logic.If                        \
+        (${CONDITION_NAME} a p1)     \
+        (a)                          \
+        ()                           \
+    )                                \
+    (${FINAL_NAME} p1 (*b))          \
+)

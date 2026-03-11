@@ -31,6 +31,8 @@ def match_brace_sequence(
     # 对当前两个括号表达式试图进行前缀匹配
     index = 0
     while index < len(tmp_seq):
+
+        # 模板串中当前元素是 SimpleTerm 的情况
         if isinstance(tmp_seq[index], SimpleTerm):
             if SimpleTerm.is_const_val(tmp_seq[index].serialize()): # 强制匹配
                 if index >= len(txt_seq): # 强制匹配时长度不足
@@ -61,10 +63,14 @@ def match_brace_sequence(
                 dic[tmp_seq[index].serialize()] = Sequence.init(arr)
                 return True
             
-            else: # 恰好匹配一个元素
+            # 匹配单个符号的变量，恰好可以匹配一个常量符号或者一个括号对象
+            # 恰好匹配一个元素
+            else: 
 
-                if index >= len(txt_seq): # 还有元素可以匹配
-                    raise ValueError()
+                # 如果文本串中没有可以匹配的元素
+                # 则不可能构成匹配（匹配失败）
+                if index >= len(txt_seq):
+                    return False
                 
                 # 变量名重复
                 if dic.get(tmp_seq[index].serialize()) is not None:
@@ -78,12 +84,13 @@ def match_brace_sequence(
                 index += 1
                 pass # 成功匹配了一个条目
             
+        # 模板串中当前元素是 BraceSequence 的情况
         else:
 
             # 此处必须是括号表达式
             if not isinstance(tmp_seq[index], BraceSequence):
                 raise ValueError()
-            if not isinstance(txt_seq[index], BraceSequence):
+            if (index >= len(txt_seq)) or not isinstance(txt_seq[index], BraceSequence):
                 return False
             
             flag = match_brace_sequence(
