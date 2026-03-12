@@ -3,7 +3,7 @@
 > [!NOTE]
 > This tutorial is under construction. Stay tuned, and contributions are welcome.
 
-Xulang (pronunciation: **/ʃuː lɑːŋ/**) is an extremely minimalist interpreted language that runs via an interpreter. Without plugins, the language accepts no user input; all programs and data are from Xulang source code files. After execution, Xulang outputs the computation results to standard output.
+Xulang (pronunciation: **/ʃjuː lɑːŋ/**) is an extremely minimalist interpreted language that runs via an interpreter. Without plugins, the language accepts no user input; all programs and data are from Xulang source code files. After execution, Xulang outputs the computation results to standard output.
 
 In Xulang's programming world, there are no variables and no functions. Everything is implemented through symbols, pattern matching, and substitution.
 
