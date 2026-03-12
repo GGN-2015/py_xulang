@@ -61,4 +61,6 @@ During the evaluation of `(Head (A B C D E))`, the pattern `(Head ())` fails to 
 
 Finally, `(Head (A B C D E))` successfully matches `(Head (a *b))`, where `a` matches `A` and `*b` matches `B C D E`. According to the `<Result>` of the current matching rule, we take the value matched by `a` as the final result.
 
+Note that to avoid ambiguous matches, Xulang syntax requires that sequence match symbols must appear at the end of a parenthesized expression.
+
 #### Reverse a List
