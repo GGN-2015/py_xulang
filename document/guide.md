@@ -122,6 +122,8 @@ In Xulang's matching rules, parentheses can only match parentheses. If no parent
 
 ### Line Escape
 
+#### Line Merge
+
 Since one substitution rule can only lies in one line, its very hard to program or read a very complex expression. When faced with this problem, you can add a back-slash `\` at the end of line to combine two adjacent lines.
 
 The following is a program to check which list is longer.
@@ -143,3 +145,22 @@ List1
 List2
 SameLength
 ```
+
+#### Line Split
+
+If you want to write mutiple substitution rule in one line, try use `\n` to seperate them.
+
+```
+(MatchA A) => TRUE \n (MatchA a) => FALSE
+
+(MatchA A)
+(MatchA B)
+```
+
+Which will output two line of content
+```
+TRUE
+FALSE
+```
+
+Since `(MatchA A) => TRUE` is infront of `(MatchA a) => FALSE`, when both of the pattern matched, the first one will be in priority.
