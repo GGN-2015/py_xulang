@@ -1,4 +1,4 @@
 # Xulang Standard Library
 
 > [!NOTE]
-> This tutorial is being continuously updated. Stay tuned, and contributions are welcome.
+> This tutorial is under construction. Stay tuned, and contributions are welcome.

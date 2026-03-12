@@ -1,7 +1,7 @@
 # How to write Xulang code?
 
 > [!NOTE]
-> This tutorial is being continuously updated. Stay tuned, and contributions are welcome.
+> This tutorial is under construction. Stay tuned, and contributions are welcome.
 
 Xulang is an extremely minimalist interpreted language that runs via an interpreter. Without plugins, the language accepts no user input; all programs and data are from Xulang source code files. After execution, Xulang outputs the computation results to standard output.
 
@@ -40,7 +40,9 @@ In Xulang, substitution rules generally take the following form:
 
 The core of the Xulang programming language is to define a series of substitution rules. When multiple rules match simultaneously, the rule defined earlier takes precedence.
 
-The `<Pattern>` part must be a sequence of symbols . In matching rules, parentheses can only match parentheses.
+The `<Pattern>` part must be a sequence of symbols. In matching rules, parentheses can only match parentheses.
+
+In `<Result>`, you can use the match sybmols defined in `<Pattern>` to use its match value. 
 
 #### Get First Element in List
 
