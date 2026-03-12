@@ -3,6 +3,7 @@
 
 // Sample usage of CREATE_SELECT_FUNCTION can be seen in Std/Math.xu
 // See Math.SelectPrime
+// Please give ${CONDITION_NAME} and ${FINAL_NAME}
 #define CREATE_SELECT_FUNCTION   \
 (${FINAL_NAME} ()) => ()       \n\
 (${FINAL_NAME} (a *b)) =>        \
@@ -15,6 +16,9 @@
     (${FINAL_NAME} (*b))         \
 )
 
+// Sample usage of CREATE_SELECT_FUNCTION can be seen in Std/Sort.xu
+// See ${CREATE_SORT_FUNCTION}
+// Please give ${CONDITION_NAME} and ${FINAL_NAME}
 #define CREATE_SELECT_FUNCTION_P1    \
 (${FINAL_NAME} p1 ()) => ()        \n\
 (${FINAL_NAME} p1 (a *b)) =>         \

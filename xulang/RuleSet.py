@@ -128,6 +128,11 @@ class RuleSet:
         ]
         return "".join(arr)
     
+    # 删除某个前缀对应的所有规则
+    def erase_rule(self, prefix:str):
+        if self.value_map_dict.get(prefix) is not None:
+            del self.value_map_dict[prefix]
+    
     # 根据 value_term 中内容的第一个元素进行快速分类
     def select_first_term_key(self, value_term:ValueTerm):
         if not isinstance(value_term.value, BraceSequence):

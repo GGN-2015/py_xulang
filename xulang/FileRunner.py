@@ -191,7 +191,13 @@ class FileRunner:
         # else 只能跳转到 endif 不能跳转到其他 else
         else:
             return end_if_list[0]
-        
+    
+    # 检查一个变量名是否是合法的
+    # 如果不合法抛出异常
+    def check_macro_var_name(self, var_name:str):
+        if not bool(re.fullmatch(r'[_A-Za-z\.][_A-Za-z0-9\.]*', var_name)):
+            raise ValueError(f"var name \"{var_name}\" is not allowed.")
+
     # 执行预处理器命令（井号开头的命令）
     # 注意：预处理命令中不会执行任何宏替换
     # 只有非预处理命令才会执行宏替换
@@ -295,6 +301,53 @@ class FileRunner:
         elif first_part == "endif":
             pass
         
+        # 从 macro 栈中拿出一个元素
+        # 并将其存入变量
+        elif first_part == "pop":
+            var_name = other_part.strip()
+            self.check_macro_var_name(var_name)
+            self.var_set.pop_var(var_name)
+
+        # 把某个指定变量的值 push 到 macro 栈中
+        # 如果这个变量中还没有值，会报错
+        elif first_part == "push":
+            var_name = other_part.strip()
+            self.check_macro_var_name(var_name)
+            self.var_set.push_var(var_name)
+
+        # 把某个表达式的值送给一个变量
+        # save 的功能是，先对某个表达式进行计算，然后再把值放进变量
+        elif first_part == "save":
+            suc = None
+            try:
+                var_name, exp_val = other_part.split(maxsplit=1)
+                suc = True
+            except:
+                var_name, exp_val = "", ""
+                suc = False
+            if not suc:
+                raise ValueError("there should be two parameters after \"#save\".")
+            var_name = var_name.strip()
+            self.check_macro_var_name(var_name)
+            # 保证表达式的值不是空字符
+            # 想要空字符串您用 define 啊，别用 save
+            exp_val = exp_val.strip()
+            if exp_val == "":
+                raise ValueError("There should be two parameters after \"#save\".")
+            tmp_value_term = ValueTerm.deserialize(f"[{exp_val}]")
+            tmp_value_term = self.rule_set.calc(tmp_value_term, self.verbose, self.step_mode)
+            # 记得去掉中括号
+            self.var_set.define_var(var_name, tmp_value_term.serialize()[1:-1])
+
+        # erase 的功能是用来在规则集合中，删除某个指定前缀的所有规则
+        elif first_part == "erase":
+            prefix = other_part.strip()
+            if prefix == "":
+                raise ValueError("There should be one paramter after \"#erase\".")
+            if prefix == "()": # prefix = () 表示删除所有特殊命令（无合法前缀命令）
+                prefix = ""    # 在数据库中，无合法前缀命令用 "" 作为前缀
+            self.rule_set.erase_rule(prefix)
+        
         # 用于定义预处理替换变量
         elif first_part == "define":
             # 从命令中获取变量名称与其中存储的信息
@@ -307,15 +360,13 @@ class FileRunner:
             var_value = var_value.strip()
             if var_name == "": # 变量名为空
                 raise ValueError("\"#define\" should followed by a var name.")
-            if not bool(re.fullmatch(r'[_A-Za-z\.][_A-Za-z0-9\.]*', var_name)):
-                raise ValueError(f"var name \"{var_name}\" is not allowed.")
+            self.check_macro_var_name(var_name)
             self.var_set.define_var(var_name, var_value)
 
         # 删除 define 定义出来的变量
         elif first_part == "undef":
             var_name = other_part.strip()
-            if not bool(re.fullmatch(r'[_A-Za-z\.][_A-Za-z0-9\.]*', var_name)):
-                raise ValueError(f"var name \"{var_name}\" is not allowed.")
+            self.check_macro_var_name(var_name)
             self.var_set.undef_var(var_name)
 
         # 显示所有匹配规则
@@ -349,58 +400,58 @@ class FileRunner:
 
         # 对命令本身进行宏替换
         # 宏替换过程在所有东西之前做
-        # 对于井号开头的命令，不做任何替换处理
-        # 只对于一般语句进行替换处理
-        #   宏替换时，需要对 \n 进行展开（将其展开成换行符）
-        #   因此，同一条语句在宏替换后，可能被展开成多条语句
-        #   preprocesspr_output 中存储这些被展开后的语句
-        #   展开后的语句中一定没有 ${...} 结构，因此不会再次需要宏替换
-        if not first_cmd.command.strip().startswith("#"):
-            preprocesspr_output = self.var_set.solve(first_cmd.command)
-            preprocesspr_output = [
-                line.strip()
-                for line in preprocesspr_output.split("\n")
-                if line.strip() != ""
-            ]
+        # 注意：只有 #define 命令特殊
+        #   define 所在的行不会进行 \n 到换行符的替换
+        #   其他命令所在的行都需要进行 \n 到换行符的替换
+        if not first_cmd.command.strip().startswith("#def"):
 
-            # 输出预处理器的输入以及预处理器的输出
-            if self.verbose:
-                if preprocesspr_output == [] or preprocesspr_output[0] != first_cmd.command:
+            # flag 表示是否成功进行了一次预处理命令替换
+            flag, preprocessor_output = self.var_set.solve_once(first_cmd.command)
+
+            # 如果发现确实至少进行了一次替换
+            # 则不予执行，重新把命令放入队首
+            if flag:
+                arr = []
+                preprocessor_output_lines = preprocessor_output.split("\n")
+                for line in preprocessor_output_lines:
+                    arr.append(CommandWrap(first_cmd.filepath, first_cmd.line_id, line))
+                if self.verbose:
                     print("\nPREI:", first_cmd.command)
-                    print("PREO:", preprocesspr_output)
-
-            # 说明这一行命令中没有命令
-            if len(preprocesspr_output) == 0:
-                return
+                    for idx, line in enumerate(preprocessor_output_lines): # 一般来说只有两行
+                        print(f"PREO[{idx+1}]:", line)
+                    if self.step_mode:
+                        input("(continue?) ") # 等待用户使用回车继续执行
+                self.cmd_list = arr + self.cmd_list
+                return # 这里必须 return 否则将会错误地执行一条命令
             
-            # 如果展开后有多行命令，本次执行只能执行一条
-            # 其余命令保持相同的行号，放在下次执行时再说
-            elif len(preprocesspr_output) >= 1:
-                first_cmd.command = preprocesspr_output[0]
-                new_cmd_list = [
-                    CommandWrap(first_cmd.filepath, first_cmd.line_id, preprocesspr_output[i])
-                    for i in range(1, len(preprocesspr_output))
-                ]
-                self.cmd_list = new_cmd_list + self.cmd_list # 首部追加
+            # 如果预处理器没有进行任何替换
+            # 则说明可以正常执行，继续执行即可
 
-        if first_cmd.command.startswith("#"): # 特殊命令
+        # 执行预处理命令
+        if first_cmd.command.startswith("#"): 
             self.execute_preprocessor_cmd(first_cmd)
 
+        # 执行非预处理命令
+        # 比如新建规则，或者输出计算结果
         else:
-            if first_cmd.command.find("=>") != -1: # 新增规则命令
+            # 新增匹配规则命令
+            if first_cmd.command.find("=>") != -1: 
                 if self.verbose:
                     print("NEWR:", first_cmd.command)
                 self.rule_set.add_rule( # 将规则加入规则集合
                     ValueMap.deserialize(first_cmd.command), 
                     first_cmd.filepath, 
                     first_cmd.line_id)
-        
-            else: # 执行命令并输出计算结果
+
+            # 执行命令并输出计算结果
+            else: 
                 value_term = ValueTerm.deserialize(f"[{first_cmd.command.strip()}]")
                 if value_term.get_one_var() is not None:
                     raise ValueError(f"No variables (like \"{value_term.get_one_var()}\") allowed in the current expression.")
                 new_value_term = self.rule_set.calc(value_term, self.verbose, self.step_mode)
-                print(new_value_term.serialize().strip()[1:-1]) # 输出前去掉中括号
+
+                # 输出前，需要去掉 ValueTerm 的中括号
+                print(new_value_term.serialize().strip()[1:-1]) 
 
     # 执行一条命令
     # 成功执行返回 True, 没有可执行命令返回 False

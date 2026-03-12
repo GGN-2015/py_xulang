@@ -26,16 +26,28 @@
 )                                                       \n\
 (${FINAL_NAME}.Mid3 (a b c)) =>                           \
     (Seek.Get (1) (${FINAL_NAME} (a b c)))              \n\
-(${FINAL_NAME}.SelectLeq val ()) => ()    \n\
-(${FINAL_NAME}.SelectLeq val (a *arr)) =>   \
-(Array.Merge                                \
-    (Logic.If                               \
-        (${LEQ_NAME} a val)                 \
-        (a)                                 \
-        ()                                  \
-    )                                       \
-    (${FINAL_NAME}.SelectLeq val (*arr))    \
-)                                         \n\
+                                     \
+#push FINAL_NAME                   \n\
+(Tmp1) => ${LEQ_NAME}              \n\
+#save CONDITION_NAME (Tmp1)        \n\
+(Tmp2) => ${FINAL_NAME}.SelectLeq  \n\
+#save FINAL_NAME (Tmp2)            \n\
+${CREATE_SELECT_FUNCTION_P1}       \n\
+#undef CONDITION_NAME              \n\
+#undef FINAL_NAME                  \n\
+#pop FINAL_NAME                    \n\
+                                     \
+(${FINAL_NAME}.Gt a b) => (Logic.Not (${LEQ_NAME} a b)) \n\
+#push FINAL_NAME                                        \n\
+(Tmp1) => ${FINAL_NAME}.Gt                              \n\
+#save CONDITION_NAME (Tmp1)                             \n\
+(Tmp2) => ${FINAL_NAME}.SelectGt                        \n\
+#save FINAL_NAME (Tmp2)                                 \n\
+${CREATE_SELECT_FUNCTION_P1}                            \n\
+#undef CONDITION_NAME                                   \n\
+#undef FINAL_NAME                                       \n\
+#pop FINAL_NAME                                         \n\
+                                                          \
 (${FINAL_NAME}.SelectGt val ()) => ()    \n\
 (${FINAL_NAME}.SelectGt val (a *arr)) =>   \
 (Array.Merge                               \
