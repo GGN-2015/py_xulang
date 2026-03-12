@@ -4,6 +4,8 @@ xulang: an ultra-minimalist programming language with zero memorization of gramm
 ## Introduction
 Zhizhi is a lovely mouse-musume. Since she dislikes memorizing grammar rules, Miaomiao designed a programming language for her that requires almost no grammar memorization.
 
+If you want to learn how to write xulang code, See [https://github.com/GGN-2015/py_xulang/blob/main/document/guide.md](https://github.com/GGN-2015/py_xulang/blob/main/document/guide.md).
+
 ## Install
 ```bash
 pip install xulang
