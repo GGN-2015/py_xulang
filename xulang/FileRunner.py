@@ -481,6 +481,15 @@ class FileRunner:
             if not flag: # 说明已经没有命令可以执行了
                 break
     
+    # 从命令行输入一行内容
+    def input_cmd_from_cli(self) -> str:
+        cmd = input(">>> ").strip()
+        while cmd.endswith("\\"):
+            cmd = cmd[:-1].strip()
+            nxt_line = input("... ").strip()
+            cmd += nxt_line
+        return cmd
+
     # 启动一个交互式用户界面
     def interactive_ui(self):
         self.interactive_cli = True # 表示进入交互式命令模式
@@ -490,7 +499,7 @@ class FileRunner:
         while self.interactive_cli: 
 
             try:
-                cmd = input(">>> ").strip()
+                cmd = self.input_cmd_from_cli()
                 if cmd == "#exit": # 退出执行
                     print(f"Bye. \n(#exit from <STDIN>:{line_id})")
                     break

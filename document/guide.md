@@ -119,3 +119,27 @@ For example, at the stage of `(Merge (Rev (B C D E)) (A))`, this expression coul
 #### Summary
 
 In Xulang's matching rules, parentheses can only match parentheses. If no parentheses are written in the pattern, a match symbol itself can match either a parenthesized expression or a constant symbol. When an expression contains nested parentheses, inner matches are evaluated first if available; only when no inner match exists will an attempt be made to match the outer parentheses. When multiple matching rules are applicable, the rule defined earlier takes precedence. Later rules are only tried if the earlier ones fail to match.
+
+### Line Escape
+
+Since one substitution rule can only lies in one line, its very hard to program or read a very complex expression. When faced with this problem, you can add a back-slash `\` at the end of line to combine two adjacent lines.
+
+The following is a program to check which list is longer.
+```
+(WhichIsLonger () ()) => SameLength
+(WhichIsLonger () (*a)) => List2
+(WhichIsLonger (*a) ()) => List1
+(WhichIsLonger (a0 *a1) (b0 *b1)) => \
+    (WhichIsLonger (*a1) (*b1))
+
+(WhichIsLonger (A B) (C))
+(WhichIsLonger (A) (B C))
+(WhichIsLonger (A B) (B C))
+```
+
+Which will output three line of content:
+```
+List1
+List2
+SameLength
+```
