@@ -1,10 +1,8 @@
-# xulang
-xulang: an ultra-minimalist programming language with zero memorization of grammar required.
+# Xulang
+Xulang: an ultra-minimalist programming language with zero memorization of syntax required.
 
 ## Introduction
-Zhizhi is a lovely mouse-musume. Since she dislikes memorizing grammar rules, Miaomiao designed a programming language for her that requires almost no grammar memorization.
-
-If you want to learn how to write xulang code, See [https://github.com/GGN-2015/py_xulang/blob/main/document/guide.md](https://github.com/GGN-2015/py_xulang/blob/main/document/guide.md).
+Zhizhi is a lovely mouse-musume. Since she dislikes memorizing grammar rules, Miaomiao designed a programming language for her that requires almost no grammar memorization. If you want to learn how to write Xulang code, See [https://github.com/GGN-2015/py_xulang/blob/main/document/guide.md](https://github.com/GGN-2015/py_xulang/blob/main/document/guide.md).
 
 ## Install
 ```bash
@@ -25,13 +23,6 @@ python3 -m xulang -I <include_path>
 # use --verbose to see matching process
 python3 -m xulang --verbose
 ```
-
-## Lexical Units
-Constants: Character strings consisting of letters, digits, and underscores, starting with a digit or uppercase letter. Examples: `123`, `ABX_1`, `T`, etc.
-
-Variables: Character strings consisting of letters, digits, and underscores, starting with a lowercase letter or underscore. Examples: `a`, `_name`, `_var1`.
-
-List Matching: A string starting with an asterisk immediately followed by a variable name. Examples: `*a`, `*_x`, `*v1`.
 
 ## Program Examples
 See `./sample_code/*.xu` on [https://github.com/GGN-2015/py_xulang](https://github.com/GGN-2015/py_xulang).
